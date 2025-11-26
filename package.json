@@ -1,12 +1,12 @@
 {
-  "name": "new-project-2",
+  "name": "cold-call-trainer",
   "version": "1.0.0",
-  "description": "새 프로젝트",
+  "description": "Cold Call Trainer - 콜드 콜 연습을 위한 프로젝트",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["cold-call", "trainer", "practice"],
   "author": "",
   "license": "ISC"
 }
