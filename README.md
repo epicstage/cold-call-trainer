@@ -1,20 +1,119 @@
-# Cold Call Trainer
+# ColdCall BALANCE – Voice Trainer v0.1
 
-콜드 콜 연습을 위한 프로젝트입니다.
+콜드 콜 연습을 위한 브라우저 기반 음성 트레이너 애플리케이션입니다.
+
+## 주요 기능
+
+- 🎤 **실시간 음성 인식**: Web Speech API를 사용한 음성-텍스트 변환
+- 🗣️ **AI 클라이언트 응답**: OpenAI GPT를 활용한 현실적인 클라이언트 응답
+- 📊 **균형잡힌 피드백**: ERS (감정적 회복력) 및 LS (논리/구조) 점수 제공
+- 📝 **대화 기록**: 실시간 대화 전사 및 분석
+
+## 기술 스택
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Voice**: Web Speech API (STT/TTS)
+- **AI**: OpenAI GPT-4o-mini
 
 ## 시작하기
 
-프로젝트를 시작할 준비가 되었습니다.
-
-## 설치
+### 1. 의존성 설치
 
 ```bash
 npm install
 ```
 
+### 2. 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 OpenAI API 키를 설정하세요:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+OpenAI API 키는 [OpenAI Platform](https://platform.openai.com/api-keys)에서 발급받을 수 있습니다.
+
+### 3. 개발 서버 실행
+
+```bash
+npm run dev
+```
+
+브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
+
+### 4. 프로덕션 빌드
+
+```bash
+npm run build
+npm start
+```
+
 ## 사용법
 
-프로젝트 설명을 추가하세요.
+1. **홈 페이지**에서 "Start Training" 버튼 클릭
+2. **Check-in**: 현재 감정 상태와 부담도 선택 (0-10)
+3. **Scenario Setup**: 클라이언트 유형과 난이도 선택
+4. **Call Console**: 
+   - "Hold to Talk" 버튼을 누르고 말하기
+   - AI 클라이언트의 응답을 듣고 대화 진행
+   - "통화 종료" 버튼으로 종료
+5. **Feedback**: ERS/LS 점수 및 피드백 확인
+
+## 평가 항목
+
+### ERS (Emotional Resilience Score)
+감정적 회복력 점수 (0-10)
+- 통화 중 스트레스나 부정적 반응에 얼마나 잘 대처했는지 평가
+- 감정 조절 능력
+- 압박 상황에서의 침착함
+
+### LS (Logic/Structure Score)
+논리/구조 점수 (0-10)
+- 대화의 논리성과 구조화된 커뮤니케이션 능력 평가
+- 명확한 메시지 전달
+- 목적 달성을 위한 전략적 접근
+
+## 클라이언트 유형
+
+- **busy_public_officer**: 바쁜 공공기관 담당자
+- **cold_startup_ceo**: 냉담한 스타트업 CEO
+- **defensive_manager**: 방어적인 관리자
+
+## 난이도
+
+- **light**: 친절하고 협조적인 반응
+- **mid**: 일반적인 반응 (기본)
+- **hard**: 적대적이고 회피적인 반응
+
+## 브라우저 호환성
+
+- Web Speech API를 지원하는 브라우저 필요 (Chrome, Edge, Safari 등)
+- 음성 인식이 지원되지 않는 경우 텍스트 입력으로 대체 가능
+
+## 프로젝트 구조
+
+```
+cold-call-trainer/
+├── app/
+│   ├── api/
+│   │   ├── call/        # 통화 API 라우트
+│   │   └── feedback/    # 피드백 API 라우트
+│   ├── session/         # 세션 페이지
+│   ├── layout.tsx       # 루트 레이아웃
+│   ├── page.tsx         # 홈 페이지
+│   └── globals.css      # 글로벌 스타일
+├── components/
+│   ├── CheckInForm.tsx      # 체크인 폼
+│   ├── ScenarioSetup.tsx    # 시나리오 설정
+│   ├── CallConsole.tsx      # 통화 콘솔
+│   └── FeedbackReport.tsx   # 피드백 리포트
+├── types/
+│   ├── index.ts         # 타입 정의
+│   └── speech.d.ts      # Speech API 타입
+└── lib/                 # 유틸리티 (향후 확장)
+```
 
 ## 라이선스
 
