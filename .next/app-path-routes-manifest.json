@@ -1,7 +1,0 @@
-{
-  "/api/call/route": "/api/call",
-  "/api/feedback/route": "/api/feedback",
-  "/_not-found/page": "/_not-found",
-  "/page": "/",
-  "/session/page": "/session"
-}
