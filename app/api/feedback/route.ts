@@ -19,33 +19,31 @@ export async function POST(request: NextRequest) {
       .map(msg => `${msg.role === 'user' ? '사용자' : '클라이언트'}: ${msg.content}`)
       .join('\n');
 
-    const systemPrompt = `당신은 콜드 콜 연습 전문 코치입니다. 통화 내용을 분석하여 다음 두 가지 점수와 피드백을 제공해야 합니다:
+    const systemPrompt = `You are a Korean cold-call performance coach. Analyze the transcript and return:
 
-1. **ERS (Emotional Resilience Score)**: 감정적 회복력 점수 (0-10)
-   - 스트레스나 부정적 반응에 얼마나 잘 대처했는지
-   - 감정 조절 능력
-   - 압박 상황에서의 침착함
+ERS (Emotional Resilience Score),
+LS (Logic/Structure Score),
+a short summary,
+and a one-line next goal.
 
-2. **LS (Logic/Structure Score)**: 논리/구조 점수 (0-10)
-   - 대화의 논리성과 구조화된 커뮤니케이션
-   - 명확한 메시지 전달
-   - 목적 달성을 위한 전략적 접근
+Base ERS on emotional stability and apology frequency.
+Base LS on structure clarity and pivot strength.
 
-다음 형식으로 JSON 응답을 제공하세요:
+Provide your response in JSON format:
 {
-  "ers": 숫자 (0-10, 소수점 1자리),
-  "ls": 숫자 (0-10, 소수점 1자리),
-  "summary": "상세한 피드백 (3-4문장)",
-  "nextGoal": "다음 세션에서 집중할 목표 (1문장)"
+  "ers": number (0-10, one decimal place),
+  "ls": number (0-10, one decimal place),
+  "summary": "detailed feedback (3-4 sentences in Korean)",
+  "nextGoal": "one-line goal for next session (in Korean)"
 }
 
-통화 정보:
-- 사전 감정: ${callLog.preEmotion.emotion} (부담도: ${callLog.preEmotion.intensity}/10)
-- 클라이언트 유형: ${callLog.sessionConfig.clientType}
-- 난이도: ${callLog.sessionConfig.difficulty}
-- 통화 시간: ${Math.floor(callLog.duration / 60)}분 ${callLog.duration % 60}초
+Call Information:
+- Pre-emotion: ${callLog.preEmotion.emotion} (intensity: ${callLog.preEmotion.intensity}/10)
+- Client type: ${callLog.sessionConfig.clientType}
+- Difficulty: ${callLog.sessionConfig.difficulty}
+- Call duration: ${Math.floor(callLog.duration / 60)}min ${callLog.duration % 60}sec
 
-대화 내용:
+Conversation transcript:
 ${conversationSummary}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
