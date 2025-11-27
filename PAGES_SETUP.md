@@ -193,3 +193,4 @@ cat /Users/mac/Desktop/cold-call-trainer/.env.local
 
 **배포 완료 후 URL:** `https://cold-call-trainer.pages.dev`
 
+

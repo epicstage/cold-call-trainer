@@ -116,3 +116,4 @@ cat /Users/mac/Desktop/cold-call-trainer/.env.local
 - **DEPLOY_CHECKLIST.md** - 단계별 상세 가이드
 - **GITHUB_CLOUDFLARE_DEPLOY.md** - 전체 배포 문서
 
+

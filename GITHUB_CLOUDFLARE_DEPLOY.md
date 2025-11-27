@@ -406,3 +406,4 @@ GitHub에 코드를 푸시하면 자동으로 Cloudflare Pages에 배포됩니�
 - Production: `https://cold-call-trainer.pages.dev`
 - Custom Domain: (설정 시)
 
+

@@ -31,3 +31,4 @@ echo "- Build command: npm run build"
 echo "- Output directory: .next"
 echo ""
 
+

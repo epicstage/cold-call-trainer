@@ -27,3 +27,4 @@ echo "3. Settings → Source → Connect to Git"
 echo "4. GitHub 인증 후 $REPO_OWNER/$REPO_NAME 선택"
 echo ""
 
+
