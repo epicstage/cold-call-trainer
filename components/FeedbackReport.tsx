@@ -12,32 +12,32 @@ interface FeedbackReportProps {
 
 export default function FeedbackReportComponent({ report, expGain, remainingExp, onRetry }: FeedbackReportProps) {
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-emerald-400';
-    if (score >= 6) return 'text-amber-400';
-    return 'text-rose-400';
+    if (score >= 8) return 'text-[#10B981]';
+    if (score >= 6) return 'text-[#F59E0B]';
+    return 'text-[#F87171]';
   };
 
   const getProgressColor = (score: number) => {
-    if (score >= 8) return 'bg-emerald-400';
-    if (score >= 6) return 'bg-amber-400';
-    return 'bg-rose-400';
+    if (score >= 8) return 'bg-[#10B981]';
+    if (score >= 6) return 'bg-[#F59E0B]';
+    return 'bg-[#F87171]';
   };
 
   return (
     <div className="space-y-6">
       {/* Title */}
       <div>
-        <h2 className="title-large mb-2">오늘의 리포트</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 gradient-text">오늘의 리포트</h2>
       </div>
 
       {/* ERS/LS Score Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <div className="subtitle-section mb-3">ERS</div>
-          <div className={`text-3xl font-semibold mb-3 ${getScoreColor(report.ers)}`}>
+        <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="text-xs uppercase tracking-[0.18em] text-[#a0a0a0] mb-3">ERS</div>
+          <div className={`text-3xl font-bold mb-3 ${getScoreColor(report.ers)}`}>
             {report.ers.toFixed(1)}
           </div>
-          <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-[rgba(255,255,255,0.1)] overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${getProgressColor(report.ers)}`}
               style={{ width: `${(report.ers / 10) * 100}%` }}
@@ -45,12 +45,12 @@ export default function FeedbackReportComponent({ report, expGain, remainingExp,
           </div>
         </div>
         
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <div className="subtitle-section mb-3">LS</div>
-          <div className={`text-3xl font-semibold mb-3 ${getScoreColor(report.ls)}`}>
+        <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="text-xs uppercase tracking-[0.18em] text-[#a0a0a0] mb-3">LS</div>
+          <div className={`text-3xl font-bold mb-3 ${getScoreColor(report.ls)}`}>
             {report.ls.toFixed(1)}
           </div>
-          <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-[rgba(255,255,255,0.1)] overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${getProgressColor(report.ls)}`}
               style={{ width: `${(report.ls / 10) * 100}%` }}
@@ -60,20 +60,20 @@ export default function FeedbackReportComponent({ report, expGain, remainingExp,
       </div>
 
       {/* Summary */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-        <div className="text-body">
+      <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+        <div className="text-base text-[#d4d4d4] leading-relaxed">
           <p className="whitespace-pre-line">{report.summary}</p>
         </div>
       </div>
 
       {/* EXP Gain */}
       {expGain !== undefined && (
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <div className="text-sm text-slate-300">
-            이번 세션으로 <span className="text-emerald-400 font-semibold">+{expGain} EXP</span> 획득
+        <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="text-sm text-[#d4d4d4]">
+            이번 세션으로 <span className="text-[#10B981] font-semibold">+{expGain} EXP</span> 획득
           </div>
           {remainingExp !== undefined && remainingExp > 0 && (
-            <div className="text-xs text-slate-400 mt-1">
+            <div className="text-xs text-[#a0a0a0] mt-1">
               다음 레벨까지 {remainingExp} EXP 남음
             </div>
           )}
@@ -81,9 +81,9 @@ export default function FeedbackReportComponent({ report, expGain, remainingExp,
       )}
 
       {/* Next Goal */}
-      <div className="bg-slate-50 text-slate-900 rounded-2xl p-4">
-        <div className="text-xs uppercase tracking-[0.18em] text-slate-500 mb-2">다음 세션 목표</div>
-        <p className="text-sm font-medium">{report.nextGoal}</p>
+      <div className="bg-[rgba(220,38,38,0.15)] border border-[#DC2626] rounded-xl p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-[#F87171] mb-2 font-semibold">다음 세션 목표</div>
+        <p className="text-sm font-medium text-white">{report.nextGoal}</p>
       </div>
 
       {/* Action Buttons */}

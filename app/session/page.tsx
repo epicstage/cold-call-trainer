@@ -100,46 +100,48 @@ export default function SessionPage() {
   const remainingExp = expState ? expState.expToNext - expState.exp : 0;
 
   return (
-    <main className="min-h-screen">
-      <div className="w-full">
+    <main className="min-h-screen p-5">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <div className="subtitle-section mb-2">SESSION</div>
-          <h1 className="title-large">오늘의 콜드콜 연습</h1>
+        <div className="text-center mb-8 fade-in-down">
+          <div className="text-xs uppercase tracking-[0.18em] text-[#a0a0a0] mb-2">SESSION</div>
+          <h1 className="text-3xl md:text-4xl font-bold gradient-text">오늘의 콜드콜 연습</h1>
         </div>
 
         {/* Level/EXP Display */}
         {expState && (
-          <div className="mb-6 text-[11px] md:text-xs text-slate-400">
+          <div className="text-center mb-6 text-sm text-[#a0a0a0]">
             Lv. {expState.level} · EXP {expState.exp}/{expState.expToNext}
             {expState.streakDays > 1 && (
-              <span className="ml-4 text-emerald-400">연속 {expState.streakDays}일 연습 중</span>
+              <span className="ml-4 text-[#F87171] font-semibold">연속 {expState.streakDays}일 연습 중</span>
             )}
           </div>
         )}
 
-        {/* Stepper Navigation */}
-        <div className="glass-stepper p-2 mb-8 flex items-center gap-2">
+        {/* Stepper Navigation - Epic 스타일 */}
+        <div className="mb-8 flex items-center justify-between gap-2 border-b-2 border-[#2a2a2a] pb-2">
           {steps.map((stepItem) => (
-            <div
+            <button
               key={stepItem.id}
-              className={`step-pill transition-all ${
+              className={`flex-1 py-3 text-center text-xs md:text-sm font-semibold transition-all border-b-3 border-transparent ${
                 stepItem.active
-                  ? 'bg-white text-slate-900 rounded-full shadow-sm'
+                  ? 'text-[#DC2626] border-b-[#DC2626]'
                   : stepItem.completed
-                  ? 'text-slate-200'
-                  : 'text-slate-500'
+                  ? 'text-[#ffffff]'
+                  : 'text-[#a0a0a0]'
               }`}
+              style={stepItem.active ? { borderBottomWidth: '3px' } : {}}
+              disabled
             >
               {stepItem.completed && !stepItem.active && <span className="mr-1">✓</span>}
               <span className="hidden md:inline">{stepItem.title}</span>
               <span className="md:hidden">{stepItem.number}</span>
-            </div>
+            </button>
           ))}
         </div>
 
         {/* Current Step Content */}
-        <div className="glass-panel">
+        <div className="modular-card fade-in-up">
           {step === 'onboarding' && <Onboarding onComplete={handleOnboardingComplete} />}
           {step === 'scenario' && userProfile && expState && (
             <ScenarioSetup 

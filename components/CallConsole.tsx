@@ -303,31 +303,29 @@ export default function CallConsole({ sessionConfig, userProfile, userLevel, dif
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div className="subtitle-section">콜 세션</div>
-        <div className="chip bg-white/10 text-slate-200">
+        <div className="text-xs uppercase tracking-[0.18em] text-[#a0a0a0]">콜 세션</div>
+        <div className="bg-[rgba(255,255,255,0.05)] border border-[#2a2a2a] rounded-full px-4 py-1.5 text-sm font-mono text-white">
           {formatTime(duration)}
         </div>
       </div>
 
       {/* Status Indicator */}
       {getStatusText() && (
-        <div className="flex items-center gap-2 text-[11px] text-slate-400">
-          <span className="pulse-dot">•</span>
-          <span className="pulse-dot" style={{ animationDelay: '0.2s' }}>•</span>
-          <span className="pulse-dot" style={{ animationDelay: '0.4s' }}>•</span>
-          <span className="ml-1">{getStatusText()}</span>
+        <div className="flex items-center gap-2 text-xs text-[#a0a0a0]">
+          <span className="text-[#DC2626] animate-pulse">●</span>
+          <span>{getStatusText()}</span>
         </div>
       )}
 
       {/* Transcript Area - Chat Bubbles */}
-      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 max-h-[360px] md:max-h-[420px] overflow-y-auto custom-scrollbar">
+      <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4 max-h-[400px] overflow-y-auto custom-scrollbar">
         <div className="flex flex-col gap-3">
           {isConnecting ? (
-            <p className="text-slate-400 text-center py-12 text-sm">
+            <p className="text-[#a0a0a0] text-center py-12 text-sm">
               전화를 연결하고 있습니다...
             </p>
           ) : messages.length === 0 ? (
-            <p className="text-slate-400 text-center py-12 text-sm">
+            <p className="text-[#a0a0a0] text-center py-12 text-sm">
               통화가 시작되었습니다. 마이크 버튼을 눌러 말씀하세요.
             </p>
           ) : (
@@ -338,10 +336,10 @@ export default function CallConsole({ sessionConfig, userProfile, userLevel, dif
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                    className={`max-w-[80%] rounded-xl px-4 py-2.5 text-sm ${
                       msg.role === 'user'
-                        ? 'bg-slate-50 text-slate-900 rounded-br-sm'
-                        : 'bg-white/10 text-slate-50 rounded-bl-sm'
+                        ? 'bg-[#DC2626] text-white rounded-br-sm'
+                        : 'bg-[rgba(255,255,255,0.05)] text-[#d4d4d4] rounded-bl-sm border border-[#2a2a2a]'
                     }`}
                   >
                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -350,7 +348,7 @@ export default function CallConsole({ sessionConfig, userProfile, userLevel, dif
               ))}
               {isProcessing && (
                 <div className="flex justify-start">
-                  <div className="bg-white/10 text-slate-50 rounded-2xl rounded-bl-sm px-4 py-2 text-sm">
+                  <div className="bg-[rgba(255,255,255,0.05)] text-[#d4d4d4] rounded-xl rounded-bl-sm px-4 py-2.5 text-sm border border-[#2a2a2a]">
                     <p>생각 중…</p>
                   </div>
                 </div>
@@ -374,7 +372,7 @@ export default function CallConsole({ sessionConfig, userProfile, userLevel, dif
               }
             }}
             placeholder="메시지를 입력하고 Enter를 누르세요"
-            className="w-full bg-white/5 border border-white/15 rounded-2xl px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-100/40"
+            className="input-field"
           />
         </div>
       )}
@@ -393,13 +391,13 @@ export default function CallConsole({ sessionConfig, userProfile, userLevel, dif
         <button
           onClick={toggleMic}
           disabled={isProcessing || isConnecting || !isCallActive}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
             isMicOn
-              ? 'bg-rose-500 shadow-lg shadow-rose-500/40 text-slate-950'
-              : 'bg-emerald-500 shadow-lg shadow-emerald-500/40 text-slate-950'
+              ? 'bg-[#DC2626] shadow-[0_0_25px_rgba(220,38,38,0.7)] text-white'
+              : 'bg-[rgba(255,255,255,0.1)] border border-[#2a2a2a] text-white hover:border-[#DC2626]'
           }`}
         >
-          <span className="text-xl">🎙</span>
+          <span className="text-2xl">🎙</span>
         </button>
 
         {/* Placeholder Button */}

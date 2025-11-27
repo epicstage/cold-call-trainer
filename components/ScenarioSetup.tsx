@@ -44,40 +44,40 @@ export default function ScenarioSetup({ currentLevel, onStart }: ScenarioSetupPr
   const info = getDifficultyInfo();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-center">
       {/* Title */}
       <div>
-        <h2 className="title-large mb-2">오늘의 레벨</h2>
-        <p className="text-body">어제까지의 연습으로 난이도가 자동 설정됩니다</p>
+        <h2 className="text-2xl md:text-3xl font-bold mb-2 gradient-text">오늘의 레벨</h2>
+        <p className="text-base text-[#a0a0a0]">어제까지의 연습으로 난이도가 자동 설정됩니다</p>
       </div>
 
       {/* Level Display */}
-      <div className="text-center py-8">
-        <div className="text-5xl md:text-6xl font-semibold text-slate-50 mb-2">
+      <div className="py-8">
+        <div className="text-6xl md:text-7xl font-bold text-white mb-4">
           Lv. {currentLevel}
         </div>
       </div>
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <div className="text-xs text-slate-400 mb-2 uppercase tracking-[0.18em]">난이도</div>
-          <div className="text-sm font-medium text-slate-50">{difficultyBand.toUpperCase()}</div>
+        <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="text-xs text-[#a0a0a0] mb-2 uppercase tracking-[0.18em]">난이도</div>
+          <div className="text-lg font-semibold text-white">{difficultyBand.toUpperCase()}</div>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <div className="text-xs text-slate-400 mb-2 uppercase tracking-[0.18em]">예상 통화 분위기</div>
-          <div className="text-sm font-medium text-slate-50">{info.label}</div>
+        <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="text-xs text-[#a0a0a0] mb-2 uppercase tracking-[0.18em]">예상 통화 분위기</div>
+          <div className="text-sm font-medium text-white">{info.label}</div>
         </div>
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-          <div className="text-xs text-slate-400 mb-2 uppercase tracking-[0.18em]">목표</div>
-          <div className="text-sm font-medium text-slate-50">{info.description}</div>
+        <div className="bg-[rgba(255,255,255,0.02)] border border-[#2a2a2a] rounded-xl p-4">
+          <div className="text-xs text-[#a0a0a0] mb-2 uppercase tracking-[0.18em]">목표</div>
+          <div className="text-sm font-medium text-white">{info.description}</div>
         </div>
       </div>
 
       {/* CTA */}
       <button
         onClick={handleStart}
-        className="btn-primary w-full"
+        className="btn-primary w-full text-lg py-4"
       >
         통화 시작하기
       </button>
