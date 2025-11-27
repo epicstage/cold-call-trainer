@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "========================================="
+echo "Cloudflare Pages 프로젝트 설정 완료 요약"
+echo "========================================="
+echo ""
+echo "✅ 프로젝트 생성: 완료"
+echo "   - 이름: cold-call-trainer"
+echo "   - URL: https://cold-call-trainer.pages.dev"
+echo ""
+echo "⏳ 남은 작업 (Dashboard에서):"
+echo "   1. Git 연결"
+echo "   2. 빌드 설정"
+echo "   3. 환경변수 추가"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "🔗 바로 가기:"
+echo "   https://dash.cloudflare.com/?to=/:account/pages/view/cold-call-trainer"
+echo ""
+
