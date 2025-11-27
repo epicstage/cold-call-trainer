@@ -1,30 +1,51 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import type { SessionConfig, PreEmotionData, Message, CallLog } from '@/types';
+import { playDialTone } from '@/lib/dialTone';
+import type { SessionConfig, Message, CallLog, UserProfile, DifficultyBand } from '@/types';
 
 interface CallConsoleProps {
   sessionConfig: SessionConfig;
-  preEmotion: PreEmotionData;
+  userProfile?: UserProfile;
+  userLevel?: number;
+  difficultyBand?: DifficultyBand;
   onFinish: (callLog: CallLog) => void;
 }
 
-export default function CallConsole({ sessionConfig, preEmotion, onFinish }: CallConsoleProps) {
+export default function CallConsole({ sessionConfig, userProfile, userLevel, difficultyBand, onFinish }: CallConsoleProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isMicOn, setIsMicOn] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isCallActive, setIsCallActive] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [fallbackText, setFallbackText] = useState('');
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const synthesisRef = useRef<SpeechSynthesis | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Speech APIs
+  // Initialize call with dial tone on mount
   useEffect(() => {
+    const initCall = async () => {
+      setIsConnecting(true);
+      await playDialTone();
+      setIsConnecting(false);
+      setIsCallActive(true);
+      startTimeRef.current = Date.now(); // Start timer after dial tone
+    };
+    
+    initCall();
+  }, []);
+
+  // Initialize Speech APIs (only after dial tone finishes)
+  useEffect(() => {
+    if (!isCallActive) return; // Wait until dial tone finishes
+    
     // Check for Speech Recognition support
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -64,7 +85,6 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
     };
 
     recognitionRef.current = recognition;
-    synthesisRef.current = window.speechSynthesis;
 
     // Start timer
     intervalRef.current = setInterval(() => {
@@ -76,8 +96,63 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
         clearInterval(intervalRef.current);
       }
       recognition.stop();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
-  }, []);
+  }, [isCallActive]);
+
+  const playTTSAudio = async (text: string) => {
+    try {
+      setIsPlayingAudio(true);
+
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // Call ElevenLabs TTS API
+      const response = await fetch('/api/voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error('TTS API failed');
+      }
+
+      // Get audio blob
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      // Create and play audio
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        console.warn('Audio playback failed');
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      audio.playbackRate = 1.3; // Faster playback for more natural feel
+      await audio.play();
+    } catch (error) {
+      console.warn('TTS audio generation or playback failed:', error);
+      setIsPlayingAudio(false);
+      // Still show the text even if audio fails
+    }
+  };
 
   const handleUserMessage = async (userText: string) => {
     if (!userText.trim()) return;
@@ -92,15 +167,50 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
     setMessages(prev => [...prev, userMessage]);
 
     try {
+      // API 요청 바디 구성
+      const requestBody: any = {
+        userMessage: userText,
+      };
+
+      // UserProfile 정보 추가
+      if (userProfile) {
+        const roleNames: Record<string, string> = {
+          insurance_agent: '보험 설계사',
+          freelancer_creator: '프리랜서',
+          startup_founder: '스타트업 대표',
+          b2b_sales: 'B2B 영업',
+          job_seeker: '구직 중',
+          other: userProfile.roleDetail || '일반인',
+        };
+        requestBody.userProfile = {
+          role: roleNames[userProfile.role] || userProfile.role,
+          name: userProfile.roleDetail,
+        };
+
+        // Persona 정보 추가
+        if (userProfile.persona) {
+          requestBody.persona = {
+            shortLabel: userProfile.persona.shortLabel,
+            description: userProfile.persona.description,
+            typicalExcuses: userProfile.persona.typicalExcuses,
+            tone: userProfile.persona.tone,
+            riskSensitivity: userProfile.persona.riskSensitivity,
+          };
+        }
+      }
+
+      // 레벨 및 난이도 정보 추가
+      if (userLevel !== undefined) {
+        requestBody.userLevel = userLevel;
+      }
+      if (difficultyBand) {
+        requestBody.difficultyBand = difficultyBand;
+      }
+
       const response = await fetch('/api/call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversationHistory: [...messages, userMessage],
-          currentUserMessage: userText,
-          clientType: sessionConfig.clientType,
-          difficulty: sessionConfig.difficulty,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) throw new Error('API call failed');
@@ -108,18 +218,14 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
       const data = await response.json();
       const clientMessage: Message = {
         role: 'client',
-        content: data.message,
+        content: data.reply || data.text || data.message || '응답을 생성할 수 없습니다.',
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, clientMessage]);
 
-      // TTS for client message
-      if (synthesisRef.current) {
-        const utterance = new SpeechSynthesisUtterance(data.message);
-        utterance.lang = 'ko-KR';
-        synthesisRef.current.speak(utterance);
-      }
+      // TTS for client message using ElevenLabs
+      await playTTSAudio(clientMessage.content);
     } catch (error) {
       console.error('Error calling API:', error);
       const errorMessage: Message = {
@@ -161,8 +267,9 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
-    if (synthesisRef.current) {
-      synthesisRef.current.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -171,7 +278,6 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
     const callLog: CallLog = {
       messages,
       duration,
-      preEmotion,
       sessionConfig,
     };
 
@@ -184,18 +290,79 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getStatusText = () => {
+    if (isConnecting) return '연결 중…';
+    if (isProcessing) return '생각 중…';
+    if (isPlayingAudio) return '음성 재생 중…';
+    if (isMicOn) return '듣는 중…';
+    if (!isCallActive) return '연결 중…';
+    return '';
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">통화 중</h2>
-        <div className="text-2xl font-mono font-semibold">{formatTime(duration)}</div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div className="subtitle-section">콜 세션</div>
+        <div className="chip bg-white/10 text-slate-200">
+          {formatTime(duration)}
+        </div>
       </div>
 
+      {/* Status Indicator */}
+      {getStatusText() && (
+        <div className="flex items-center gap-2 text-[11px] text-slate-400">
+          <span className="pulse-dot">•</span>
+          <span className="pulse-dot" style={{ animationDelay: '0.2s' }}>•</span>
+          <span className="pulse-dot" style={{ animationDelay: '0.4s' }}>•</span>
+          <span className="ml-1">{getStatusText()}</span>
+        </div>
+      )}
+
+      {/* Transcript Area - Chat Bubbles */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-4 max-h-[360px] md:max-h-[420px] overflow-y-auto custom-scrollbar">
+        <div className="flex flex-col gap-3">
+          {isConnecting ? (
+            <p className="text-slate-400 text-center py-12 text-sm">
+              전화를 연결하고 있습니다...
+            </p>
+          ) : messages.length === 0 ? (
+            <p className="text-slate-400 text-center py-12 text-sm">
+              통화가 시작되었습니다. 마이크 버튼을 눌러 말씀하세요.
+            </p>
+          ) : (
+            <>
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm ${
+                      msg.role === 'user'
+                        ? 'bg-slate-50 text-slate-900 rounded-br-sm'
+                        : 'bg-white/10 text-slate-50 rounded-bl-sm'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  </div>
+                </div>
+              ))}
+              {isProcessing && (
+                <div className="flex justify-start">
+                  <div className="bg-white/10 text-slate-50 rounded-2xl rounded-bl-sm px-4 py-2 text-sm">
+                    <p>생각 중…</p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Fallback Text Input */}
       {!speechSupported && (
-        <div className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg">
-          <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
-            음성 인식이 지원되지 않습니다. 텍스트로 입력해주세요.
-          </p>
+        <div>
           <input
             type="text"
             value={fallbackText}
@@ -207,68 +374,42 @@ export default function CallConsole({ sessionConfig, preEmotion, onFinish }: Cal
               }
             }}
             placeholder="메시지를 입력하고 Enter를 누르세요"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
+            className="w-full bg-white/5 border border-white/15 rounded-2xl px-4 py-3 text-sm text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-100/40"
           />
         </div>
       )}
 
-      <div className="mb-6 h-96 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
-        {messages.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-            통화가 시작되었습니다. 마이크 버튼을 눌러 말씀하세요.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] px-4 py-2 rounded-lg ${
-                    msg.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                  }`}
-                >
-                  <p className="text-sm font-medium mb-1">
-                    {msg.role === 'user' ? '나' : '클라이언트'}
-                  </p>
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
-                </div>
-              </div>
-            ))}
-            {isProcessing && (
-              <div className="flex justify-start">
-                <div className="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg">
-                  <p className="text-gray-500 dark:text-gray-400">응답 대기 중...</p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="flex gap-4">
-        <button
-          onClick={toggleMic}
-          disabled={isProcessing}
-          className={`flex-1 py-3 px-6 rounded-lg font-semibold transition-colors ${
-            isMicOn
-              ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-green-600 hover:bg-green-700 text-white'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          {isMicOn ? '🎤 마이크 끄기' : '🎤 Hold to Talk'}
-        </button>
+      {/* Controls */}
+      <div className="flex items-center justify-center gap-4 pt-4">
+        {/* End Call Button */}
         <button
           onClick={handleFinish}
-          className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          className="btn-glass"
         >
           통화 종료
+        </button>
+
+        {/* Mic Button */}
+        <button
+          onClick={toggleMic}
+          disabled={isProcessing || isConnecting || !isCallActive}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+            isMicOn
+              ? 'bg-rose-500 shadow-lg shadow-rose-500/40 text-slate-950'
+              : 'bg-emerald-500 shadow-lg shadow-emerald-500/40 text-slate-950'
+          }`}
+        >
+          <span className="text-xl">🎙</span>
+        </button>
+
+        {/* Placeholder Button */}
+        <button
+          disabled
+          className="btn-glass opacity-30"
+        >
+          메모
         </button>
       </div>
     </div>
   );
 }
-

@@ -38,7 +38,6 @@ Provide your response in JSON format:
 }
 
 Call Information:
-- Pre-emotion: ${callLog.preEmotion.emotion} (intensity: ${callLog.preEmotion.intensity}/10)
 - Client type: ${callLog.sessionConfig.clientType}
 - Difficulty: ${callLog.sessionConfig.difficulty}
 - Call duration: ${Math.floor(callLog.duration / 60)}min ${callLog.duration % 60}sec

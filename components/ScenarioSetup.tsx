@@ -1,93 +1,86 @@
 'use client';
 
-import { useState } from 'react';
 import type { SessionConfig } from '@/types';
+import { getDifficultyBand } from '@/lib/difficulty';
 
 interface ScenarioSetupProps {
-  onStart: (sessionConfig: SessionConfig) => void;
+  currentLevel: number;
+  onStart: (config: SessionConfig) => void;
 }
 
-export default function ScenarioSetup({ onStart }: ScenarioSetupProps) {
-  const [clientType, setClientType] = useState<SessionConfig['clientType']>('busy_public_officer');
-  const [difficulty, setDifficulty] = useState<SessionConfig['difficulty']>('light');
-
+export default function ScenarioSetup({ currentLevel, onStart }: ScenarioSetupProps) {
+  const difficultyBand = getDifficultyBand(currentLevel);
+  
   const handleStart = () => {
-    onStart({ clientType, difficulty });
+    onStart({
+      clientType: 'busy_public_officer',
+      difficulty: 'mid',
+    });
   };
 
-  const clientTypes = [
-    { value: 'busy_public_officer' as const, label: '바쁜 공공기관 담당자' },
-    { value: 'cold_startup_ceo' as const, label: '냉담한 스타트업 CEO' },
-    { value: 'defensive_manager' as const, label: '방어적인 관리자' },
-  ];
+  const getDifficultyInfo = () => {
+    switch (difficultyBand) {
+      case 'easy':
+        return {
+          label: '조금 여유 있는 첫 통화',
+          description: '비교적 부드럽고 예의 있는 반응이 예상됩니다',
+          mood: '친근',
+        };
+      case 'normal':
+        return {
+          label: '바쁜 와중에 받은 전화',
+          description: '시간이 없어서 짧게 끝내고 싶어 합니다',
+          mood: '서둘러',
+        };
+      case 'hard':
+        return {
+          label: '빨리 끊고 싶은 상대',
+          description: '상당히 짜증 나 있고 단호하게 거절할 수 있습니다',
+          mood: '단호',
+        };
+    }
+  };
 
-  const difficulties = [
-    { value: 'light' as const, label: '쉬움', desc: '친절하고 반응이 좋음' },
-    { value: 'mid' as const, label: '보통', desc: '일반적인 반응' },
-    { value: 'hard' as const, label: '어려움', desc: '적대적이고 회피적' },
-  ];
+  const info = getDifficultyInfo();
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6">Scenario Setup</h2>
-      
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-3">
-            클라이언트 유형
-          </label>
-          <select
-            value={clientType}
-            onChange={(e) => setClientType(e.target.value as SessionConfig['clientType'])}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {clientTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-3">
-            난이도
-          </label>
-          <div className="space-y-2">
-            {difficulties.map((diff) => (
-              <label
-                key={diff.value}
-                className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                  difficulty === diff.value
-                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900 dark:border-blue-400'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="difficulty"
-                  value={diff.value}
-                  checked={difficulty === diff.value}
-                  onChange={(e) => setDifficulty(e.target.value as SessionConfig['difficulty'])}
-                  className="mr-3"
-                />
-                <div>
-                  <div className="font-medium">{diff.label}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{diff.desc}</div>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={handleStart}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-        >
-          통화 시작하기
-        </button>
+    <div className="space-y-8">
+      {/* Title */}
+      <div>
+        <h2 className="title-large mb-2">오늘의 레벨</h2>
+        <p className="text-body">어제까지의 연습으로 난이도가 자동 설정됩니다</p>
       </div>
+
+      {/* Level Display */}
+      <div className="text-center py-8">
+        <div className="text-5xl md:text-6xl font-semibold text-slate-50 mb-2">
+          Lv. {currentLevel}
+        </div>
+      </div>
+
+      {/* Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="text-xs text-slate-400 mb-2 uppercase tracking-[0.18em]">난이도</div>
+          <div className="text-sm font-medium text-slate-50">{difficultyBand.toUpperCase()}</div>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="text-xs text-slate-400 mb-2 uppercase tracking-[0.18em]">예상 통화 분위기</div>
+          <div className="text-sm font-medium text-slate-50">{info.label}</div>
+        </div>
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <div className="text-xs text-slate-400 mb-2 uppercase tracking-[0.18em]">목표</div>
+          <div className="text-sm font-medium text-slate-50">{info.description}</div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <button
+        onClick={handleStart}
+        className="btn-primary w-full"
+      >
+        통화 시작하기
+      </button>
     </div>
   );
 }
-

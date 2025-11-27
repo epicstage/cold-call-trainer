@@ -12,11 +12,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
-      <body className="antialiased">
-        {children}
+    <html lang="ko" className="dark">
+      <body className="relative">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-16">
+          {children}
+        </div>
       </body>
     </html>
   );
 }
-

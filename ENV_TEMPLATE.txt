@@ -1,0 +1,21 @@
+========================================
+Cloudflare Pages 환경변수 설정 템플릿
+========================================
+
+Cloudflare Pages → Settings → Environment Variables → Production
+
+아래 3개 변수를 추가하세요:
+
+1. OPENAI_API_KEY
+   값: (실제 OpenAI API 키)
+   .env.local 파일에서 확인: cat .env.local | grep OPENAI_API_KEY
+
+2. ELEVENLABS_API_KEY
+   값: (실제 ElevenLabs API 키)
+   .env.local 파일에서 확인: cat .env.local | grep ELEVENLABS_API_KEY
+
+3. ELEVENLABS_VOICE_ID
+   값: 21m00Tcm4TlvDq8ikWAM
+   (또는 원하는 음성 ID)
+
+========================================

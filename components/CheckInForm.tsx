@@ -19,43 +19,38 @@ export default function CheckInForm({ onComplete }: CheckInFormProps) {
   const emotions: PreEmotionData['emotion'][] = ['불안', '귀찮음', '짜증', '기대'];
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-6">Check-in</h2>
+    <div>
+      <h2 className="text-lg md:text-xl font-semibold mb-2 text-neutral-50">Step 1 · 감정 체크인</h2>
+      <p className="text-sm text-neutral-400 mb-6">콜드콜을 시작하기 전 현재 기분을 체크인하세요</p>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         <div>
-          <label className="block text-sm font-medium mb-3">
-            지금 콜드콜 생각하면 얼마나 부담스럽나요?
-            <span className="ml-2 text-blue-600 dark:text-blue-400">{intensity}/10</span>
-          </label>
+          <div className="flex items-center justify-between mb-4">
+            <label className="text-sm font-medium text-neutral-400">부담감</label>
+            <span className="text-sm font-medium text-neutral-50">{intensity}/10</span>
+          </div>
           <input
             type="range"
             min="0"
             max="10"
             value={intensity}
             onChange={(e) => setIntensity(Number(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+            className="w-full accent-white"
           />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>전혀 아님</span>
-            <span>매우 부담스러움</span>
-          </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-3">
-            현재 감정 상태는?
-          </label>
-          <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm font-medium mb-4 text-neutral-400">현재 감정 상태</label>
+          <div className="flex flex-wrap gap-2 justify-center">
             {emotions.map((emo) => (
               <button
                 key={emo}
                 type="button"
                 onClick={() => setEmotion(emo)}
-                className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                className={`rounded-full border px-4 py-2 text-sm transition-all ${
                   emotion === emo
-                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900 dark:border-blue-400 text-blue-600 dark:text-blue-400 font-semibold'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                    ? 'bg-white text-neutral-900 border-transparent'
+                    : 'border-white/15 bg-white/5 text-neutral-100'
                 }`}
               >
                 {emo}
@@ -66,7 +61,7 @@ export default function CheckInForm({ onComplete }: CheckInFormProps) {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          className="w-full inline-flex items-center justify-center rounded-full bg-white text-neutral-900 px-6 py-2.5 md:px-7 md:py-2.5 text-sm font-medium shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:bg-neutral-100 active:scale-[0.99] transition-all"
         >
           다음 단계로
         </button>
@@ -74,4 +69,3 @@ export default function CheckInForm({ onComplete }: CheckInFormProps) {
     </div>
   );
 }
-

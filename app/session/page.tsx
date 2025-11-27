@@ -1,23 +1,33 @@
 'use client';
 
-import { useState } from 'react';
-import CheckInForm from '@/components/CheckInForm';
+import { useState, useEffect } from 'react';
+import Onboarding from '@/components/Onboarding';
 import ScenarioSetup from '@/components/ScenarioSetup';
 import CallConsole from '@/components/CallConsole';
 import FeedbackReport from '@/components/FeedbackReport';
-import type { PreEmotionData, SessionConfig, CallLog, FeedbackReport as FeedbackReportType } from '@/types';
+import { loadExpState, saveExpState, updateExpAfterSession, calculateExpGain } from '@/lib/exp';
+import { getDifficultyBand } from '@/lib/difficulty';
+import type { SessionConfig, CallLog, FeedbackReport as FeedbackReportType, UserProfile, ExpState } from '@/types';
 
-type SessionStep = 'checkin' | 'scenario' | 'call' | 'feedback';
+type SessionStep = 'onboarding' | 'scenario' | 'call' | 'feedback';
 
 export default function SessionPage() {
-  const [step, setStep] = useState<SessionStep>('checkin');
-  const [preEmotion, setPreEmotion] = useState<PreEmotionData | null>(null);
+  const [step, setStep] = useState<SessionStep>('onboarding');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [sessionConfig, setSessionConfig] = useState<SessionConfig | null>(null);
   const [callLog, setCallLog] = useState<CallLog | null>(null);
   const [feedbackReport, setFeedbackReport] = useState<FeedbackReportType | null>(null);
+  const [expState, setExpState] = useState<ExpState | null>(null);
+  const [expGain, setExpGain] = useState<number>(0);
 
-  const handleCheckInComplete = (preEmotionData: PreEmotionData) => {
-    setPreEmotion(preEmotionData);
+  // Load EXP state on mount
+  useEffect(() => {
+    const state = loadExpState();
+    setExpState(state);
+  }, []);
+
+  const handleOnboardingComplete = (profile: UserProfile) => {
+    setUserProfile(profile);
     setStep('scenario');
   };
 
@@ -29,7 +39,6 @@ export default function SessionPage() {
   const handleCallFinish = async (log: CallLog) => {
     setCallLog(log);
     
-    // Get feedback from API
     try {
       const response = await fetch('/api/feedback', {
         method: 'POST',
@@ -41,10 +50,27 @@ export default function SessionPage() {
 
       const data = await response.json();
       setFeedbackReport(data.report);
+
+      // Update EXP
+      if (expState) {
+        const difficultyBand = getDifficultyBand(expState.level);
+        const newExpState = updateExpAfterSession(expState, {
+          ers: data.report.ers,
+          ls: data.report.ls,
+          userLevel: expState.level,
+          difficultyBand,
+        });
+        saveExpState(newExpState);
+        setExpState(newExpState);
+
+        // Calculate gain for display
+        const gain = calculateExpGain(data.report.ers, data.report.ls, difficultyBand);
+        setExpGain(gain);
+      }
+
       setStep('feedback');
     } catch (error) {
       console.error('Error getting feedback:', error);
-      // Fallback feedback
       setFeedbackReport({
         ers: 7.0,
         ls: 7.0,
@@ -56,30 +82,90 @@ export default function SessionPage() {
   };
 
   const handleRetry = () => {
-    setStep('checkin');
-    setPreEmotion(null);
+    setStep('onboarding');
+    setUserProfile(null);
     setSessionConfig(null);
     setCallLog(null);
     setFeedbackReport(null);
+    setExpGain(0);
   };
 
+  const steps = [
+    { id: 'onboarding', number: 0, title: '역할 & 고객', active: step === 'onboarding', completed: step !== 'onboarding' },
+    { id: 'scenario', number: 1, title: '레벨 확인', active: step === 'scenario', completed: ['call', 'feedback'].includes(step) },
+    { id: 'call', number: 2, title: '통화 진행', active: step === 'call', completed: step === 'feedback' },
+    { id: 'feedback', number: 3, title: '피드백', active: step === 'feedback', completed: false },
+  ];
+
+  const remainingExp = expState ? expState.expToNext - expState.exp : 0;
+
   return (
-    <main className="min-h-screen p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {step === 'checkin' && <CheckInForm onComplete={handleCheckInComplete} />}
-        {step === 'scenario' && preEmotion && <ScenarioSetup onStart={handleScenarioStart} />}
-        {step === 'call' && sessionConfig && preEmotion && (
-          <CallConsole
-            sessionConfig={sessionConfig}
-            preEmotion={preEmotion}
-            onFinish={handleCallFinish}
-          />
+    <main className="min-h-screen">
+      <div className="w-full">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="subtitle-section mb-2">SESSION</div>
+          <h1 className="title-large">오늘의 콜드콜 연습</h1>
+        </div>
+
+        {/* Level/EXP Display */}
+        {expState && (
+          <div className="mb-6 text-[11px] md:text-xs text-slate-400">
+            Lv. {expState.level} · EXP {expState.exp}/{expState.expToNext}
+            {expState.streakDays > 1 && (
+              <span className="ml-4 text-emerald-400">연속 {expState.streakDays}일 연습 중</span>
+            )}
+          </div>
         )}
-        {step === 'feedback' && feedbackReport && (
-          <FeedbackReport report={feedbackReport} onRetry={handleRetry} />
-        )}
+
+        {/* Stepper Navigation */}
+        <div className="glass-stepper p-2 mb-8 flex items-center gap-2">
+          {steps.map((stepItem) => (
+            <div
+              key={stepItem.id}
+              className={`step-pill transition-all ${
+                stepItem.active
+                  ? 'bg-white text-slate-900 rounded-full shadow-sm'
+                  : stepItem.completed
+                  ? 'text-slate-200'
+                  : 'text-slate-500'
+              }`}
+            >
+              {stepItem.completed && !stepItem.active && <span className="mr-1">✓</span>}
+              <span className="hidden md:inline">{stepItem.title}</span>
+              <span className="md:hidden">{stepItem.number}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Current Step Content */}
+        <div className="glass-panel">
+          {step === 'onboarding' && <Onboarding onComplete={handleOnboardingComplete} />}
+          {step === 'scenario' && userProfile && expState && (
+            <ScenarioSetup 
+              currentLevel={expState.level}
+              onStart={handleScenarioStart} 
+            />
+          )}
+          {step === 'call' && sessionConfig && expState && (
+            <CallConsole
+              sessionConfig={sessionConfig}
+              userProfile={userProfile || undefined}
+              userLevel={expState.level}
+              difficultyBand={getDifficultyBand(expState.level)}
+              onFinish={handleCallFinish}
+            />
+          )}
+          {step === 'feedback' && feedbackReport && (
+            <FeedbackReport
+              report={feedbackReport}
+              expGain={expGain}
+              remainingExp={remainingExp}
+              onRetry={handleRetry}
+            />
+          )}
+        </div>
       </div>
     </main>
   );
 }
-
